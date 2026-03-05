@@ -12,17 +12,17 @@ class MODE(str, Enum):
 ###########################################
 ## CHANGE HERE ##
 
-setting_fileName =  "Scenario1"
-mode = "SIMULATION"
+setting_fileName =  "Case1"
+mode = "OPTIMIZATION"
 lr = 0.07
 
 ###########################################
 
 root = os.path.dirname(os.path.abspath(__file__))
-Scene_folder = f"{root}/Scenarios/"
+Scene_folder = f"{root}/Cases/"
 result_folder = f"{root}/Results"
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 @dataclass
 class Config:
@@ -30,7 +30,7 @@ class Config:
     run_mode: MODE = mode                                           # ruinning mode
     lr: float = lr                                              # learning rate
     control_vars: torch.tensor = torch.load(f"{Scene_folder}/{setting_fileName}.pt")
-    # control_vars: torch.tensor = torch.from_numpy(np.loadtxt(str(Path(result_folder) / "bests" / "RLS1_best.txt")))
+    # control_vars: torch.tensor = torch.from_numpy(np.loadtxt(str(Path(result_folder) / "bests" / "S2_best2.txt")))
     current_time: str = time.strftime("%y%m%d_%H%M", time.localtime())
 
 

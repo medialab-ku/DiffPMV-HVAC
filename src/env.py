@@ -30,6 +30,7 @@ class Env(torch.nn.Module):
         self.obstacles = [self.makeBox(ob) for ob in scene.obstacles]
 
         self.outlet_theta = scene.outlet_theta
+        self.loss_weights = scene.loss_weights
 
         # Occupant Setting
         self._build_occupants(scene.occupants, roi_calc=roi_calc)

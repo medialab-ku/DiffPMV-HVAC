@@ -2212,3 +2212,7 @@ occupants:
   kernels: null
   total_time: null
 outlet_theta: 0.0
+loss_weights:
+  velocity: 0.5
+  temperature: 0.25
+  continuous: 0.03

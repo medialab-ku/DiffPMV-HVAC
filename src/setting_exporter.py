@@ -27,7 +27,7 @@ def _to_serializable(obj: Any) -> Any:
 
 def save_yaml(Scenario: Scenario, fileName: str | Path):
     # path: yaml file name
-    path = Path(f"src/Scenarios/{fileName}")
+    path = Path(f"src/Cases/{fileName}")
 
     with path.open("w", encoding="utf-8") as fp:
         yaml.safe_dump(_to_serializable(asdict(Scenario)), fp, sort_keys=False, allow_unicode=True)
@@ -36,7 +36,7 @@ def save_yaml(Scenario: Scenario, fileName: str | Path):
 
 
 def save_pt(control_vars: torch.tensor, fileName: str | Path):
-    path = Path("src/Scenarios/" + fileName)
+    path = Path("src/Cases/" + fileName)
 
     torch.save(control_vars, path)
 
@@ -46,7 +46,7 @@ def save_pt(control_vars: torch.tensor, fileName: str | Path):
 ##  MODIFY HERE
 
 
-def Scenario1():
+def Case1():
     Lx, Ly, Lz = 4.2, 2.7, 3.0 # real size of domain [m]
     h = 0.3
     Nx, Ny, Nz = int(round(Lx / h)), int(round(Ly / h)), int(round(Lz / h))
@@ -55,7 +55,7 @@ def Scenario1():
     NOpt = 100
     dt = 1.0 # s 
     
-    fileName = "Scenario1"
+    fileName = "Case1"
 
     Occs = [
     Occ(    
@@ -89,7 +89,12 @@ def Scenario1():
         outlet=outlet,
         obstacles=obs,
         outlet_theta=math.degrees_to_radians(90.0),
-        occupants=Occs
+        occupants=Occs,
+        loss_weights={
+            "velocity":    20.0,    # w1
+            "temperature":  3.0,    # w2
+            "continuous":   0.1,    # lambda3
+        }
     )
 
     control_vars = np.zeros((scene.Nt, 3))
@@ -100,7 +105,7 @@ def Scenario1():
     return fileName, scene, control_vars
 
 
-def Scenario2():
+def Case2():
     Lx, Ly, Lz = 9.0, 2.5, 10.0 # real size of domain [m]
     h = 0.5
     Nx, Ny, Nz = int(round(Lx / h)), int(round(Ly / h)), int(round(Lz / h))
@@ -109,7 +114,7 @@ def Scenario2():
     NOpt = 100
     dt = 1.0 # s 
     
-    fileName = "Scenario2"
+    fileName = "Case2"
 
     Occs = [
     Occ(    # Sofa
@@ -159,7 +164,12 @@ def Scenario2():
         outlet=outlet,
         obstacles=obs,
         outlet_theta=math.degrees_to_radians(180.0),
-        occupants=Occs
+        occupants=Occs,
+        loss_weights={
+            "velocity":    10.0,    # w1
+            "temperature":  2.5,    # w2
+            "continuous":   0.1,    # lambda3
+        }
     )
 
     control_vars = np.zeros((scene.Nt, 3))
@@ -171,7 +181,7 @@ def Scenario2():
     return fileName, scene, control_vars
 
 
-def Scenario3():
+def Case3():
     Lx, Ly, Lz = 6.4, 2.8, 7.6 # real size of domain [m]
     h = 0.4
     Nx, Ny, Nz = int(round(Lx / h)), int(round(Ly / h)), int(round(Lz / h))
@@ -180,7 +190,7 @@ def Scenario3():
     NOpt = 100
     dt = 1.0 # s 
     
-    fileName = "Scenario3"
+    fileName = "Case3"
 
     # presenter's position
     positions = [None] * Nt
@@ -237,7 +247,12 @@ def Scenario3():
         rh=50.0,
         outlet=outlet,
         obstacles=obs,
-        occupants=Occs
+        occupants=Occs,
+        loss_weights={
+            "velocity":     0.5 ,   # w1
+            "temperature":  0.25,   # w2
+            "continuous":   0.03,   # lambda3
+        }
     )
 
     control_vars = np.zeros((scene.Nt, 4))
@@ -252,6 +267,14 @@ def Scenario3():
 
 
 if __name__ == "__main__":
-    fileName, scene, control_vars = Scenario3()
-    save_yaml(scene, f"{fileName}.yaml")     # Save Scenario Setting .yaml file
-    save_pt(control_vars, f"{fileName}.pt")  # Save Control Variables
+    import argparse
+
+    cases = {"Case1": Case1, "Case2": Case2, "Case3": Case3}
+
+    parser = argparse.ArgumentParser(description="Export scenario YAML and initial control variables (.pt)")
+    parser.add_argument("case", choices=list(cases.keys()), help="Case to export")
+    args = parser.parse_args()
+
+    fileName, scene, control_vars = cases[args.case]()
+    save_yaml(scene, f"{fileName}.yaml")
+    save_pt(control_vars, f"{fileName}.pt")

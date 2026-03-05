@@ -42,27 +42,24 @@ class LossClass:
 
     def SOTA_constraint_loss(self, temperature_field: CenteredGrid):
         T_min, T_max = 21.0, 22.0
-        penalty_weight = 100.0
         
         temp_mean = field.mean(temperature_field)
         violation_low = math.maximum(0.0, T_min - temp_mean)
         violation_high = math.maximum(0.0, temp_mean - T_max)
         
-        loss_constraint = penalty_weight * (violation_low ** 2 + violation_high ** 2)
+        loss_constraint = violation_low ** 2 + violation_high ** 2
         return loss_constraint 
     
     def SOTA_centering_loss(self, temperature_field: CenteredGrid):
         T_min, T_max = 21.0, 22.0
         T_middle = 0.5 * (T_min + T_max)
-        centering_weight = 1.0
         
         temp_mean = field.mean(temperature_field)
-        loss_centering = centering_weight * (temp_mean - T_middle) ** 2
+        loss_centering = (temp_mean - T_middle) ** 2
         return loss_centering
 
     def SOTA_CO2_loss(self, co2_field: CenteredGrid):
         C_max = 1200.0  # ppm - maximum allowed CO2 concentration
-        penalty_weight = 100.0
 
         # Maximum CO2 concentration in the field
         co2_max = math.max(co2_field.values)
@@ -70,7 +67,7 @@ class LossClass:
         # ReLU penalty: penalize violation above C_max
         # max(0, co2_max - C_max) using PhiFlow math
         violation = math.maximum(0.0, co2_max - C_max)
-        loss = penalty_weight * (violation ** 2)
+        loss = violation ** 2
 
         return loss
 

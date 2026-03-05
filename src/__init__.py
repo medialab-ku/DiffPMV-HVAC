@@ -9,7 +9,7 @@ import torch
 import yaml, time, os, gc
 
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import dataclass, field as dc_field
 from typing import Any, Dict, List, Sequence, Optional
 import collections.abc as cabc
 from tqdm import tqdm
@@ -78,6 +78,13 @@ class Scenario:
     occupants: list[Occ]
 
     outlet_theta: float = 0.0  # fixed outlet azimuth angle [rad]; ignored when control_vars includes theta
+
+    # Loss weights for optimize()
+    loss_weights: dict = dc_field(default_factory=lambda: {
+        "velocity":    20.0,
+        "temperature":  3.0,
+        "continuous":   0.1,
+    })
 
 
 

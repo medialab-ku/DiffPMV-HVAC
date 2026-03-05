@@ -137,9 +137,9 @@ class Forward:
         loss_dict["temperature"] = 0.0
         loss_dict["continuous"]  = 0.0
 
-        weight_dict["velocity"]    = 20.0
-        weight_dict["temperature"] = 3.0 # 2.5
-        weight_dict["continuous"]  = 0.1
+        weight_dict["velocity"]    = self.env.loss_weights["velocity"]
+        weight_dict["temperature"] = self.env.loss_weights["temperature"]
+        weight_dict["continuous"]  = self.env.loss_weights["continuous"]
 
 
         for t in tqdm(range(self.Nt), desc="Simulation Steps", unit="step"):
@@ -257,10 +257,10 @@ class Forward:
         loss_dict["co2"]        = 0.0  # CO2 loss
         loss_dict["continuous"] = 0.0
 
-        weight_dict["energy"]     = 1.0
-        weight_dict["constraint"] = 1.0
+        weight_dict["energy"]     = 1.0     
+        weight_dict["constraint"] = 100.0
         weight_dict["centering"]  = 0.1
-        weight_dict["co2"]        = 1.0   # CO2 weight (same as energy weight)
+        weight_dict["co2"]        = 100.0   
         weight_dict["continuous"] = 0.1
 
         for t in tqdm(range(self.Nt), desc="Simulation Steps", unit="step"):

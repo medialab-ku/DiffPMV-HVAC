@@ -18,26 +18,6 @@ def save_loss_graph(losses, NOpt, output_path):
 
 
 def save_pmv_graph(pmv_values:dict[Occ, list], env:Env,  output_path):
-    # steps = np.arange(1, env.Nt+1)
-    # plt.figure(figsize=(12, 5))  
-
-    # for occ in env.occs:
-    #     plt.plot(steps, pmv_values[occ], linestyle='-', label=f"met: {occ.met}, clo: {occ.clo}") 
-
-    # plt.fill_between(steps, 0.5, 2.0, color='gray', alpha=0.5)
-
-    # plt.title("Weighted Average absolute PMV in ROIs")  
-    # plt.xlabel("Simulation steps")  
-    # plt.ylabel("Weighted Average absolute PMV")  
-    # plt.ylim(0, 2.0)
-    # plt.xticks(np.arange(0, env.Nt+1, 60))
-    # plt.xlim(1, env.Nt)
-    # plt.legend() 
-    # # plt.grid(True) 
-    
-    # plt.savefig(output_path, dpi=300)  
-    # plt.close() 
-
     time_steps = np.arange(0, env.Nt)
 
     plt.rcParams.update({
@@ -92,9 +72,6 @@ def save_pmv_graph(pmv_values:dict[Occ, list], env:Env,  output_path):
                 ax.plot(time_steps[mask], pmv[mask],
                         color=c['active'], linewidth=2.5, linestyle='-', label=label)
                 labeled = True
-            else:
-                ax.plot(time_steps[mask], pmv[mask],
-                        color=c['inactive'], linewidth=2.0, linestyle='--')
 
     ax.set_xlabel("Time (seconds)")
     ax.set_ylabel(r"$\mathcal{P}_1(t)$")
@@ -120,7 +97,7 @@ def run_optimization(env:Env):
     log.mlf()
 
     # Optimized Variables 
-    control_vars = torch.nn.Parameter(cfg.control_vars.to(env.device))
+    control_vars = torch.nn.Parameter(cfg.control_vars.to(device=env.device, dtype=torch.float32))
     control_vars.requires_grad = True
 
     # Learning rate and optimizer/lr scheduler
@@ -247,7 +224,7 @@ def run_SOTA_opt(env:Env):
     log.mlf()
 
     # Optimized Variables 
-    control_vars = torch.nn.Parameter(cfg.control_vars.to(env.device))
+    control_vars = torch.nn.Parameter(cfg.control_vars.to(device=env.device, dtype=torch.float32))
     control_vars.requires_grad = True
 
     # Learning rate and optimizer/lr scheduler
