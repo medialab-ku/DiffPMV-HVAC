@@ -115,8 +115,6 @@ class Forward:
         return pmv_grid
 
 
-
-
     def simulation(self, velocity: StaggeredGrid, temperature: CenteredGrid, vars):
         for t in tqdm(range(self.Nt), desc="Simulation Steps", unit="step"):
             velocity, temperature = self.step(velocity, temperature, vars[t])
@@ -195,30 +193,24 @@ class Forward:
         theta = step_vars[3] if len(step_vars) > 3 else self.env.outlet_theta
 
 
-        # ========== CO2 STEP (same as SOTA_step) ==========
-        # SOTA parameters for CO2
+        # ========== CO2 STEP ==========
         alpha = 0.65  # recirculation rate
         C_fresh = 400.0  # ppm
         alpha_C = 50.0  # CO2 source coefficient
         k_C = 0.00108  # CO2 diffusion coefficient
 
-        # 1. Apply fresh air at inlet FIRST (before advection)
         co2_mean = field.mean(co2)
         co2_inlet_value = alpha * C_fresh + (1 - alpha) * co2_mean
         co2 = field.where(self.outlet_cells, co2_inlet_value * math.ones_like(co2), co2)
 
-        # 2. CO2 source from occupants at current timestep t
         co2_source = 0.0
         for occ in self.occs:
             if occ.is_active(t):
                 co2_source += alpha_C * occ.kernels.t[t]
 
-        # 3. Advection-diffusion for CO2 (source added to advection result)
         co2 = advect.mac_cormack(co2, velocity, dt=self.dt) + co2_source
         co2 = diffuse.explicit(co2, k_C, dt=self.dt, substeps=3)
 
-        # ========== VELOCITY & TEMPERATURE STEP (exactly same as step()) ==========
-        # Apply inlet conditions FIRST (before advection, same as step())
         velocity = field.where(self.outlet_cells, 
                                (vel * sin(phi) * sin(theta),
                                 vel * cos(phi),
@@ -226,29 +218,24 @@ class Forward:
                                 velocity)      
         temperature = field.where(self.outlet_cells, tem * math.ones_like(temperature), temperature)
 
-        # Advection
         temperature = advect.mac_cormack(temperature, velocity, dt=self.dt)
         velocity = advect.semi_lagrangian(velocity, velocity, dt=self.dt)
 
-        # Diffusion (same as step(): velocity explicit substeps=3, temperature implicit)
         velocity = diffuse.explicit(velocity, self.viscosity_coeff, dt=self.dt, substeps=3)
         temperature = diffuse.implicit(temperature, self.diffusion_coeff, dt=self.dt)
 
-        # Make incompressible
         velocity, _ = fluid.make_incompressible(velocity, obstacles=self.obs)
 
         return velocity, temperature, co2
 
 
 
-    def SOTA_optimize(self, velocity: StaggeredGrid, temperature: CenteredGrid, control_vars):
+    def DPDE_optimize(self, velocity: StaggeredGrid, temperature: CenteredGrid, control_vars):
         L = LossClass(self.env)
         loss = 0.0
         loss_dict, weight_dict = defaultdict(float), defaultdict(float)
 
-        # Initialize CO2 field - starting at fresh air level
-        # SOTA uses ZERO_GRADIENT boundary for CO2 (env.py line 129)
-        C_init = 450.0  # initial CO2 concentration in ppm (from SOTA env.py line 123)
+        C_init = 450.0  # initial CO2 concentration in ppm
         co2 = CenteredGrid(C_init, extrapolation.ZERO_GRADIENT, x=self.Nx, y=self.Ny, z=self.Nz, bounds=self.bound)
 
         loss_dict["energy"]     = 0.0
@@ -266,19 +253,19 @@ class Forward:
         for t in tqdm(range(self.Nt), desc="Simulation Steps", unit="step"):
             velocity, temperature, co2 = self.step_with_co2(velocity, temperature, co2, control_vars[t], t)
 
-            loss_energy = L.SOTA_energy_loss(control_vars)
+            loss_energy = L.DPDE_energy_loss(control_vars)
             loss_dict["energy"] += loss_energy
             loss += weight_dict["energy"] * loss_energy
 
-            loss_constraint = L.SOTA_constraint_loss(temperature)
+            loss_constraint = L.DPDE_constraint_loss(temperature)
             loss_dict["constraint"] += loss_constraint
             loss += weight_dict["constraint"] * loss_constraint
 
-            loss_centering = L.SOTA_centering_loss(temperature)
+            loss_centering = L.DPDE_centering_loss(temperature)
             loss_dict["centering"] += loss_centering
             loss += weight_dict["centering"] * loss_centering
 
-            loss_co2 = L.SOTA_CO2_loss(co2)
+            loss_co2 = L.DPDE_CO2_loss(co2)
             loss_dict["co2"] += loss_co2
             loss += weight_dict["co2"] * loss_co2
 

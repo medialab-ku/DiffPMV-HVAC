@@ -1,4 +1,4 @@
-name: PMV_DP
+name: DiffPMV
 channels:
   - defaults
 dependencies:

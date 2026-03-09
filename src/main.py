@@ -124,7 +124,7 @@ def run_optimization(env:Env):
         log.log_buffer.append(f"{epoch+1} epoch(s)")
 
         # Save Control Variable
-        print(f"Velocity Mean: {control_vars[:, 0].mean().item()}, Maximum: {control_vars[:, 0].amax().item()}")
+        # print(f"Velocity Mean: {control_vars[:, 0].mean().item()}, Maximum: {control_vars[:, 0].amax().item()}") # For debugging
         vars_data[epoch] = control_vars
         torch.save(vars_data, f"{folderName}/control_vars.pt")
 
@@ -150,8 +150,8 @@ def run_optimization(env:Env):
 
             with torch.no_grad():  
                 control_vars[:, 0].clamp_(min=0.0) # speed
-                control_vars[:, 2].clamp_(min=math.degrees_to_radians(0.0), max=math.degrees_to_radians(90.0))
-
+                control_vars[:, 2].clamp_(min=math.degrees_to_radians(90.0), max=math.degrees_to_radians(180.0))
+                if control_vars.shape[1] > 3: control_vars[:, 3].clamp_(min=math.degrees_to_radians(-90.0), max=math.degrees_to_radians(90.0))
 
         step_time = get_time(time.perf_counter() - step_start_time)
         print(f"{epoch+1} epoch Loss {loss} ({step_time})")
@@ -215,7 +215,7 @@ def run_simulation(env:Env):
 
 
 
-def run_SOTA_opt(env:Env):
+def run_DPDE_opt(env:Env):
     # Forward Module including Simulation / Optimization Functions
     forward_module = Forward(env)
 
@@ -242,7 +242,7 @@ def run_SOTA_opt(env:Env):
     best_loss = float('inf')
 
     # ★ Functional Gradient
-    sim_grad = field.functional_gradient(forward_module.SOTA_optimize, wrt='control_vars', get_output=True)
+    sim_grad = field.functional_gradient(forward_module.DPDE_optimize, wrt='control_vars', get_output=True)
 
     start_time = time.perf_counter()
 
@@ -251,7 +251,7 @@ def run_SOTA_opt(env:Env):
         log.log_buffer.append(f"{epoch+1} epoch(s)")
 
         # Save Control Variable
-        # print(f"Velocity Mean: {control_vars[:, 0].mean().item()}, Maximum: {control_vars[:, 0].amax().item()}")
+        # print(f"Velocity Mean: {control_vars[:, 0].mean().item()}, Maximum: {control_vars[:, 0].amax().item()}") # for debugging
         vars_data[epoch] = control_vars
         torch.save(vars_data, f"{folderName}/control_vars.pt")
 
@@ -278,7 +278,8 @@ def run_SOTA_opt(env:Env):
 
             with torch.no_grad():  
                 control_vars[:, 0].clamp_(min=0.0) # speed
-                control_vars[:, 2].clamp_(min=math.degrees_to_radians(0.0), max=math.degrees_to_radians(90.0))
+                control_vars[:, 2].clamp_(min=math.degrees_to_radians(90.0), max=math.degrees_to_radians(180.0))
+                if control_vars.shape[1] > 3: control_vars[:, 3].clamp_(min=math.degrees_to_radians(-90.0), max=math.degrees_to_radians(90.0))
 
 
         step_time = get_time(time.perf_counter() - step_start_time)
@@ -318,10 +319,10 @@ def run_SOTA_opt(env:Env):
             pmv_fields[occ][t] = pmv
             del pmv
 
-    save_pmv_graph(pmv_values, env, f"{folderName}/PMV_graph_SOTA_{best_epoch+1}epoch.png")    
+    save_pmv_graph(pmv_values, env, f"{folderName}/PMV_graph_DPDE_{best_epoch+1}epoch.png")    
 
 
-def run_SOTA_sim(env:Env):
+def run_DPDE_sim(env:Env):
     folderName = log.mf(cfg.current_time)
     forward_module = Forward(env)
 
@@ -329,7 +330,7 @@ def run_SOTA_sim(env:Env):
     co2_max = [None] * env.Nt
 
     velocity, temperature = env.init_vf, env.init_tf
-    C_init = 450.0  # initial CO2 concentration in ppm (from SOTA env.py line 123)
+    C_init = 450.0  # initial CO2 concentration in ppm
     co2 = CenteredGrid(C_init, extrapolation.ZERO_GRADIENT, x=env.Nx, y=env.Ny, z=env.Nz, bounds=env.bound)
 
     for t in tqdm(range(env.Nt), desc="Simulation Steps", unit="step"):
@@ -346,5 +347,5 @@ if __name__ == "__main__":
     env = Env.from_yaml(Path(cfg.scenario), control_vars=cfg.control_vars, lr=cfg.lr)
     if   cfg.run_mode == "OPTIMIZATION":    run_optimization(env)
     elif cfg.run_mode == "SIMULATION":      run_simulation(env)
-    elif cfg.run_mode == "SOTA_OPT":        run_SOTA_opt(env)
-    elif cfg.run_mode == "SOTA_SIM":        run_SOTA_sim(env)
+    elif cfg.run_mode == "D-PDE_OPT":        run_DPDE_opt(env)
+    elif cfg.run_mode == "D-PDE_SIM":        run_DPDE_sim(env)

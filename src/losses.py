@@ -27,9 +27,9 @@ class LossClass:
         dev = dev.__div__(self.dt)
         return dev.__abs__().sum()
 
-    ## SOTA ##################################################
+    ## DPDE ##################################################
 
-    def SOTA_energy_loss(self, vars: torch.tensor):
+    def DPDE_energy_loss(self, vars: torch.tensor):
         u1_velocity = vars[:, 0]
         u2_temp = vars[:, 1]
 
@@ -40,7 +40,7 @@ class LossClass:
 
         return loss_energy
 
-    def SOTA_constraint_loss(self, temperature_field: CenteredGrid):
+    def DPDE_constraint_loss(self, temperature_field: CenteredGrid):
         T_min, T_max = 21.0, 22.0
         
         temp_mean = field.mean(temperature_field)
@@ -50,7 +50,7 @@ class LossClass:
         loss_constraint = violation_low ** 2 + violation_high ** 2
         return loss_constraint 
     
-    def SOTA_centering_loss(self, temperature_field: CenteredGrid):
+    def DPDE_centering_loss(self, temperature_field: CenteredGrid):
         T_min, T_max = 21.0, 22.0
         T_middle = 0.5 * (T_min + T_max)
         
@@ -58,7 +58,7 @@ class LossClass:
         loss_centering = (temp_mean - T_middle) ** 2
         return loss_centering
 
-    def SOTA_CO2_loss(self, co2_field: CenteredGrid):
+    def DPDE_CO2_loss(self, co2_field: CenteredGrid):
         C_max = 1200.0  # ppm - maximum allowed CO2 concentration
 
         # Maximum CO2 concentration in the field

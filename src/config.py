@@ -6,13 +6,13 @@ class MODE(str, Enum):
     OPTIMIZE = "OPTIMIZATION"            # do optimization
     SIMULATE = "SIMULATION"               # just simulation, no backward
     
-    SOTA_OPTIMIZE = "SOTA_OPT"
-    SOTA_SIMULATE = "SOTA_SIM"
+    DPDE_OPTIMIZE = "D-PDE_OPT"
+    DPDE_SIMULATE = "D-PDE_SIM"
 
 ###########################################
-## CHANGE HERE ##
+## MODIFY HERE ##
 
-setting_fileName =  "Case1"
+setting_fileName =  "Case3"
 mode = "OPTIMIZATION"
 lr = 0.07
 

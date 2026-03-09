@@ -102,7 +102,7 @@ class RLEnv(gym.Env):
     gamma_pmv_hard = 40.0
     gamma_pmv_soft = 15.0 
     w1, w2 = 1.0, 0.2  
-    u2_default = 14.4   # Supply air temperature default (SOTA)
+    u2_default = 14.4   # Supply air temperature default
     gamma_continuous = 0.01
 
     occs_active = [occ for occ in self.occs if occ.is_active(t)]
