@@ -97,17 +97,17 @@ def run_optimization(env:Env):
     log.mlf()
 
     # Optimized Variables 
-    control_vars = torch.nn.Parameter(cfg.control_vars.to(device=env.device, dtype=torch.float32))
+    # control_vars = torch.nn.Parameter(cfg.control_vars.to(device=env.device, dtype=torch.float32))
+    control_vars = torch.nn.Parameter(cfg.control_vars.to(device=env.device))
     control_vars.requires_grad = True
 
     # Learning rate and optimizer/lr scheduler
-    lr = torch.tensor(cfg.lr, dtype=torch.float32, device=device)
-    optimizer = torch.optim.Adam([control_vars], lr=lr)
+    optimizer = torch.optim.Adam([control_vars], lr=env.lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=env.NOpt)
 
     # Storage
     losses = [None] * env.NOpt
-    vars_data = torch.zeros((env.NOpt, *control_vars.shape), device=device) 
+    vars_data = torch.zeros((env.NOpt, *control_vars.shape), device=device)
 
     # Best
     best_epoch = 0
@@ -224,17 +224,17 @@ def run_DPDE_opt(env:Env):
     log.mlf()
 
     # Optimized Variables 
-    control_vars = torch.nn.Parameter(cfg.control_vars.to(device=env.device, dtype=torch.float32))
+    # control_vars = torch.nn.Parameter(cfg.control_vars.to(device=env.device, dtype=torch.float32))
+    control_vars = torch.nn.Parameter(cfg.control_vars.to(device=env.device))
     control_vars.requires_grad = True
 
     # Learning rate and optimizer/lr scheduler
-    lr = torch.tensor(cfg.lr, dtype=torch.float32, device=device)
-    optimizer = torch.optim.Adam([control_vars], lr=lr)
+    optimizer = torch.optim.Adam([control_vars], lr=env.lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=env.NOpt)
 
     # Storage
     losses = [None] * env.NOpt
-    vars_data = torch.zeros((env.NOpt, *control_vars.shape), device=device) 
+    vars_data = torch.zeros((env.NOpt, *control_vars.shape), device=device)
 
     # Best
     best_epoch = 0
@@ -344,7 +344,7 @@ def run_DPDE_sim(env:Env):
 
 
 if __name__ == "__main__":
-    env = Env.from_yaml(Path(cfg.scenario), control_vars=cfg.control_vars, lr=cfg.lr)
+    env = Env.from_yaml(Path(cfg.scenario), control_vars=cfg.control_vars)
     if   cfg.run_mode == "OPTIMIZATION":    run_optimization(env)
     elif cfg.run_mode == "SIMULATION":      run_simulation(env)
     elif cfg.run_mode == "D-PDE_OPT":        run_DPDE_opt(env)

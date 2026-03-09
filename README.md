@@ -95,11 +95,15 @@ Before running, edit the `## MODIFY HERE ##` block in [src/config.py](src/config
 
 setting_fileName = "Case1"      # Case to run
 mode = "OPTIMIZATION"           # Run mode: "OPTIMIZATION" or "SIMULATION"
-lr = 0.07                       # Learning rate (used in OPTIMIZATION mode)
 ```
 
 - **`OPTIMIZATION`**: Runs end-to-end differentiable optimization to find optimal HVAC control variables.
-- **`SIMULATION`**: Runs a forward simulation only with the initial control variables (The results of RBC baseline can be obtained from this, see `setting_exporter.py`).
+- **`SIMULATION`**: Runs a forward simulation only with the initial control variables (The results of RBC baseline can be obtained from this, see [src/setting_exporter.py](src/setting_exporter.py)).
+
+### Per-Case Settings (`setting_exporter.py`)
+
+All case-specific parameters - such as room size, geometry, occupants configuration, hyper parameters, and loss function - are defined in [src/setting_exporter.py](src/setting_exporter.py) and exported to `.yaml` / `.pt` files. 
+
 
 ### Proposed Method
 
@@ -121,7 +125,7 @@ python -m src.RL_run
 # D-PDE baseline
 python -m src.main
 ```
-for D-PDE baseline, you must modify the `mode` in `config.py` to `D-PDE_OPT` or `D-PDE_SIM`.
+For D-PDE baseline, you must modify the `mode` into `D-PDE_OPT` or `D-PDE_SIM` in [src/config.py](src/config.py) .
 
 ---
 

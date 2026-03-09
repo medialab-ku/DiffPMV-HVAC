@@ -2216,3 +2216,5 @@ loss_weights:
   velocity: 0.5
   temperature: 0.25
   continuous: 0.03
+lr: 0.07
+pmv_loss_fn: abs2_gaussian

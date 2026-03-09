@@ -123,6 +123,7 @@ class Forward:
 
     def optimize(self, velocity: StaggeredGrid, temperature: CenteredGrid, control_vars):
         L = LossClass(self.env)
+        pmv_loss_fn = getattr(L, f"Loss_{self.env.pmv_loss_fn}")
         loss = 0.0
         loss_dict, weight_dict = defaultdict(float), defaultdict(float)
 
@@ -146,7 +147,7 @@ class Forward:
             # PMV loss
             for occ in self.occs:
                 pmv = self.tensor_pmv(velocity, temperature, met=occ.met, clo=occ.clo)
-                loss_pmv = L.Loss_abs_gaussian(occ, pmv, t)
+                loss_pmv = pmv_loss_fn(occ, pmv, t)
                 loss_dict[f"occ{occ.id}_pmv"] += loss_pmv
                 loss += weight_dict[f"occ{occ.id}_pmv"] * loss_pmv
                 del pmv

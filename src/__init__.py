@@ -86,6 +86,9 @@ class Scenario:
         "continuous":   0.1,
     })
 
+    lr: float = 0.07           # learning rate for optimizer
+    pmv_loss_fn: str = "abs_gaussian"  # "abs_gaussian" or "abs2_gaussian"
+
 
 
 __all__ = [# Imported from phi.torch.flow

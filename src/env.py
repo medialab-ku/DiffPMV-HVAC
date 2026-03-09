@@ -6,14 +6,15 @@ from phi.field import stack
 from phi.math  import batch
 
 class Env(torch.nn.Module):
-    def __init__(self, scene: Scenario, control_vars, lr, roi_calc=True):
+    def __init__(self, scene: Scenario, control_vars, roi_calc=True):
         super().__init__()
         self.scene = scene
         self.device = device
 
         # User Setting Variables
         self.control_vars = control_vars # initial control variable setting
-        self.lr = torch.tensor(lr, dtype=torch.float32, device=self.device) # learning rate setting 
+        self.lr = torch.tensor(scene.lr, dtype=torch.float32, device=self.device) # learning rate setting
+        self.pmv_loss_fn = scene.pmv_loss_fn
 
         # Scenario Settings
         self.dim = scene.dim

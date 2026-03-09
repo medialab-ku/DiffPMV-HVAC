@@ -16,7 +16,7 @@ from src.losses import LossClass
 
 register(
     id='RoomEnv-v1',
-    entry_point='src.PMV_RL:RLEnv',
+    entry_point='src.RL:RLEnv',
 )
 
 class RLEnv(gym.Env):
@@ -37,7 +37,7 @@ class RLEnv(gym.Env):
     self.observation_high = np.ones(7, dtype=np.float32)
     self.observation_space = spaces.Box(low=self.observation_low, high=self.observation_high, shape=(7,), dtype=np.float32) 
 
-    env = Env.from_yaml(Path(cfg.scenario), control_vars=cfg.control_vars, lr=cfg.lr)  
+    env = Env.from_yaml(Path(cfg.scenario), control_vars=cfg.control_vars)
     self.forward = Forward(env)
     self.lossClass = LossClass(env)
 

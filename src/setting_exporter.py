@@ -94,7 +94,9 @@ def Case1():
             "velocity":    20.0,    # w1
             "temperature":  3.0,    # w2
             "continuous":   0.1,    # lambda3
-        }
+        },
+        lr=0.07,
+        pmv_loss_fn="abs_gaussian",
     )
 
     control_vars = np.zeros((scene.Nt, 3))
@@ -170,7 +172,9 @@ def Case2():
             "velocity":    10.0,    # w1
             "temperature":  2.5,    # w2
             "continuous":   0.1,    # lambda3
-        }
+        },
+        lr=0.07,
+        pmv_loss_fn="abs_gaussian",
     )
 
     control_vars = np.zeros((scene.Nt, 3))
@@ -253,7 +257,9 @@ def Case3():
             "velocity":     0.5 ,   # w1
             "temperature":  0.25,   # w2
             "continuous":   0.03,   # lambda3
-        }
+        },
+        lr=0.07,
+        pmv_loss_fn="abs2_gaussian",
     )
 
     control_vars = np.zeros((scene.Nt, 4))

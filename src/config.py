@@ -12,9 +12,8 @@ class MODE(str, Enum):
 ###########################################
 ## MODIFY HERE ##
 
-setting_fileName =  "Case3"
+setting_fileName =  "Case1"
 mode = "OPTIMIZATION"
-lr = 0.07
 
 ###########################################
 
@@ -28,7 +27,6 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 class Config:
     scenario: str = f"{Scene_folder}/{setting_fileName}.yaml"  # scenario file name
     run_mode: MODE = mode                                           # ruinning mode
-    lr: float = lr                                              # learning rate
     control_vars: torch.tensor = torch.load(f"{Scene_folder}/{setting_fileName}.pt")
     # control_vars: torch.tensor = torch.from_numpy(np.loadtxt(str(Path(result_folder) / "bests" / "S2_best2.txt")))
     current_time: str = time.strftime("%y%m%d_%H%M", time.localtime())

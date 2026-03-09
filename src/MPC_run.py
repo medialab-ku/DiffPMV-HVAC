@@ -30,7 +30,7 @@ def save_pmv_graph(pmv_values:dict[Occ, list], env:Env,  output_path):
     plt.savefig(output_path, dpi=300)  
     plt.close() 
 
-env = Env.from_yaml(Path(cfg.scenario), control_vars=cfg.control_vars, lr=cfg.lr)
+env = Env.from_yaml(Path(cfg.scenario), control_vars=cfg.control_vars)
 
 dyn = DynParams(
     # ========== RC Thermal Model Parameters ==========
