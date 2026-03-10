@@ -101,7 +101,6 @@ def Case1():
 
     control_vars = np.zeros((scene.Nt, 3))
     control_vars[:] = [0.6, 20.0, math.degrees_to_radians(120.0)]
-    # control_vars[:] = [0.5, 20.0, math.degrees_to_radians(156.7)] # for RBC
 
     control_vars = torch.tensor(control_vars, dtype=torch.float32, device=device)
 

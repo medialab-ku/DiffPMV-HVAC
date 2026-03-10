@@ -3,87 +3,13 @@ from src.config import cfg, log, result_folder, device
 from src.env import Env
 from src.forward import Forward
 
-import matplotlib.pyplot as plt
 
 # Utility
 
-def save_loss_graph(losses, NOpt, output_path):
-    plt.figure()
-    plt.plot(range(1, NOpt+1), losses, marker='o')
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Loss over epochs")
-    plt.savefig(output_path)
-    plt.close()
-
-
-def save_pmv_graph(pmv_values:dict[Occ, list], env:Env,  output_path):
-    time_steps = np.arange(0, env.Nt)
-
-    plt.rcParams.update({
-        'font.size': 14,
-        'font.family': 'times new roman',
-        'axes.labelsize': 16,
-        'mathtext.fontset': 'stix',
-        'mathtext.rm': 'Times New Roman'
-    })
-
-    colors = [
-        {'active': '#FF0000', 'inactive': '#FF6666', 'bg': '#FF9999'},
-        {'active': '#0000FF', 'inactive': '#6666FF', 'bg': '#99CCFF'},
-        {'active': '#008800', 'inactive': '#66BB66', 'bg': '#99DD99'},
-        {'active': '#CC6600', 'inactive': '#FFAA66', 'bg': '#FFCC99'},
-    ]
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.fill_between(time_steps, 0.5, 2.2, color="#3D3D3D", alpha=0.3)
-
-    for i, occ in enumerate(env.occs):
-        c = colors[i % len(colors)]
-        pmv = np.array(pmv_values[occ])
-
-        # Background spans + state text
-        for start, end in occ.active_time:
-            ax.axvspan(start, end, alpha=0.15, color=c['bg'], zorder=0)
-            text = f"\nState {occ.id}\n{occ.met} Met, {occ.clo} Clo"
-            ax.text((start + end) / 2, 2.0, text,
-                    ha='center', va='center', fontsize=16, fontweight='bold', color=c['active'])
-
-        # Build segments (active / inactive)
-        active_times = sorted(occ.active_time, key=lambda x: x[0])
-        segments = []
-        current = 0
-        for start, end in active_times:
-            if current < start:
-                segments.append((current, start, False))
-            segments.append((start, end, True))
-            current = end
-        if current < env.Nt:
-            segments.append((current, env.Nt, False))
-
-        # Plot each segment
-        labeled = False
-        for seg_start, seg_end, is_active in segments:
-            mask = (time_steps >= seg_start) & (time_steps < seg_end)
-            if not np.any(mask):
-                continue
-            if is_active:
-                label = f"State {occ.id}" if not labeled else None
-                ax.plot(time_steps[mask], pmv[mask],
-                        color=c['active'], linewidth=2.5, linestyle='-', label=label)
-                labeled = True
-
-    ax.set_xlabel("Time (seconds)")
-    ax.set_ylabel(r"$\mathcal{P}_1(t)$")
-    ax.set_xlim(0, env.Nt)
-    ax.set_ylim(0, 2.2)
-    ax.set_xticks(np.arange(0, env.Nt + 1, 60))
-    ax.grid(True, alpha=0.2, linestyle='--')
-    ax.legend(loc='lower left', fontsize=15)
-
-    plt.tight_layout()
-    plt.savefig(output_path, bbox_inches='tight')
-    plt.close()
+def save_pmv_txt(pmv_values: dict[Occ, list], env: Env, output_dir):
+    for occ in env.occs:
+        np.savetxt(f"{output_dir}/pmv_occ{occ.id}_met{occ.met}_clo{occ.clo}.txt",
+                   np.array(pmv_values[occ]), fmt='%.4f')
 
 
 ####
@@ -170,27 +96,24 @@ def run_optimization(env:Env):
 
     ## OPTIMIZATION DONE
     ## Save Loss Data
-    save_loss_graph(losses, env.NOpt, f"{folderName}/loss_graph.png")  # save loss graph over epoch
-
+    np.savetxt(f"{folderName}/losses.txt", losses, fmt='%.6f', header='loss', comments='')
 
     ## SAVE BEST DATA
     np.savetxt(f"{folderName}/best_vars.txt", best_vars.cpu().detach().numpy(), fmt="%.3f")   # save best vars
 
     # Re-simulation of Best Epoch
     pmv_values = {occ: [None] * env.Nt for occ in env.occs} # Dictionary
-    pmv_fields = {occ: [None] * env.Nt for occ in env.occs}
     velocity, temperature = env.init_vf, env.init_tf
     for t in tqdm(range(env.Nt), desc="Simulation Steps", unit="step"):
-        velocity, temperature = forward_module.step(velocity, temperature, best_vars[t])  
+        velocity, temperature = forward_module.step(velocity, temperature, best_vars[t])
 
-        for occ in env.occs:  
+        for occ in env.occs:
             pmv = forward_module.tensor_pmv(velocity, temperature, met=occ.met, clo=occ.clo) # occupants..
             # if occ.is_active(t):
             pmv_values[occ][t] = field.l1_loss(occ.kernels.t[t] * pmv.__abs__()).native().item() / field.l1_loss(occ.kernels.t[t]).native().item()
-            pmv_fields[occ][t] = pmv
             del pmv
 
-    save_pmv_graph(pmv_values, env, f"{folderName}/PMV_graph_{best_epoch+1}epoch.png")    
+    save_pmv_txt(pmv_values, env, folderName)    
 
 
 
@@ -200,18 +123,17 @@ def run_simulation(env:Env):
     # vf, tf = forward_module.simulation(env.init_vf, env.init_tf, cfg.control_vars)
 
     pmv_values = {occ: [None] * env.Nt for occ in env.occs} # Dictionary
-    pmv_fields = {occ: [None] * env.Nt for occ in env.occs}
 
     velocity, temperature = env.init_vf, env.init_tf
     for t in tqdm(range(env.Nt), desc="Simulation Steps", unit="step"):
-        velocity, temperature = forward_module.step(velocity, temperature, cfg.control_vars[t])  
+        velocity, temperature = forward_module.step(velocity, temperature, cfg.control_vars[t])
 
-        for occ in env.occs:  
+        for occ in env.occs:
             pmv = forward_module.tensor_pmv(velocity, temperature, met=occ.met, clo=occ.clo) # occupants..
             pmv_values[occ][t] = field.l1_loss(occ.kernels.t[t] * pmv.__abs__()).native().item() / field.l1_loss(occ.kernels.t[t]).native().item()
             del pmv
 
-    save_pmv_graph(pmv_values, env, f"{folderName}/PMV_graph.png")  
+    save_pmv_txt(pmv_values, env, folderName)  
 
 
 
@@ -299,27 +221,25 @@ def run_DPDE_opt(env:Env):
 
     ### OPTIMIZATION DONE
 
-    ## Save Loss Graph
-    save_loss_graph(losses, env.NOpt, f"{folderName}/loss_graph.png")  # save loss graph over epoch
+    ## Save Loss Data
+    np.savetxt(f"{folderName}/losses.txt", losses, fmt='%.6f', header='loss', comments='')
 
     ## SAVE BEST DATA
     np.savetxt(f"{folderName}/best_vars.txt", best_vars.cpu().detach().numpy(), fmt="%.3f")   # save best vars
 
     # Re-simulation of Best Epoch
     pmv_values = {occ: [None] * env.Nt for occ in env.occs} # Dictionary
-    pmv_fields = {occ: [None] * env.Nt for occ in env.occs}
     velocity, temperature = env.init_vf, env.init_tf
     for t in tqdm(range(env.Nt), desc="Simulation Steps", unit="step"):
-        velocity, temperature = forward_module.step(velocity, temperature, best_vars[t])  
+        velocity, temperature = forward_module.step(velocity, temperature, best_vars[t])
 
-        for occ in env.occs:  
+        for occ in env.occs:
             pmv = forward_module.tensor_pmv(velocity, temperature, met=occ.met, clo=occ.clo) # occupants..
             # if occ.is_active(t):
             pmv_values[occ][t] = field.l1_loss(occ.kernels.t[t] * pmv.__abs__()).native().item() / field.l1_loss(occ.kernels.t[t]).native().item()
-            pmv_fields[occ][t] = pmv
             del pmv
 
-    save_pmv_graph(pmv_values, env, f"{folderName}/PMV_graph_DPDE_{best_epoch+1}epoch.png")    
+    save_pmv_txt(pmv_values, env, folderName)    
 
 
 def run_DPDE_sim(env:Env):

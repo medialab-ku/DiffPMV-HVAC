@@ -7,29 +7,6 @@ from src.forward import Forward
 
 
 
-def save_pmv_graph(pmv_values:dict[Occ, list], env:Env,  output_path):
-    import matplotlib.pyplot as plt
-
-    steps = np.arange(1, env.Nt+1)
-    plt.figure(figsize=(12, 5))  
-
-    for occ in env.occs:
-        plt.plot(steps, pmv_values[occ], linestyle='-', label=f"met: {occ.met}, clo: {occ.clo}") 
-
-    plt.fill_between(steps, 0.5, 4.0, color='gray', alpha=0.5)
-
-    plt.title("Weighted Average absolute PMV in ROIs")  
-    plt.xlabel("Simulation steps")  
-    plt.ylabel("Weighted Average absolute PMV")  
-    plt.ylim(0, 4.0)
-    plt.xticks(np.arange(0, env.Nt+1, 60))
-    plt.xlim(1, env.Nt)
-    plt.legend() 
-    # plt.grid(True) 
-    
-    plt.savefig(output_path, dpi=300)  
-    plt.close() 
-
 env = Env.from_yaml(Path(cfg.scenario), control_vars=cfg.control_vars)
 
 dyn = DynParams(
@@ -117,7 +94,6 @@ for t in tqdm(range(env.Nt), desc="Simulation Steps", unit="step"):
         torch.cuda.empty_cache()
 
 folderName = log.mf(cfg.current_time)
-save_pmv_graph(pmv_values, env, f"{folderName}/PMV_graph_MPC.png")    
 
 torch.save(control_vars_MPC, f"{folderName}/final_vars_MPC.pt")
 np_control_vars = control_vars_MPC.cpu().numpy()
