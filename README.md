@@ -9,7 +9,7 @@ This is the source code repository for the Applied Energy paper:
 
 ## Overview
 
-This repository implements an end-to-end differentiable HVAC control optimization framework that directly neutralizes the Predicted Mean Vote (PMV) thermal comfort index via gradient-based optimization.
+This repository implements an end-to-end differentiable HVAC control optimization framework that directly neutralizes the Predicted Mean Vote (PMV) index and minimizes energy consumption via gradient-based optimization.
 
 The key idea is to integrate 3D airflow and temperature simulations and the PMV evaluation into a single differentiable pipeline using automatic differentiation ([PhiFlow](https://github.com/tum-pbs/PhiFlow)). 
 This allows exact gradients with respect to the HVAC control variables — airflow speed, supply temperature, and outlet angle.
@@ -82,6 +82,8 @@ python -m src.setting_exporter Case3
 
 or you can generate new case file by adding new function at `setting_exporter.py`.
 
+All case-specific parameters - such as room size, geometry, occupants configuration, hyper parameters, and loss function - are defined in [src/setting_exporter.py](src/setting_exporter.py) and exported to `.yaml` / `.pt` files. 
+
 ---
 
 ## Running
@@ -99,10 +101,6 @@ mode = "OPTIMIZATION"           # Run mode: "OPTIMIZATION" or "SIMULATION"
 
 - **`OPTIMIZATION`**: Runs end-to-end differentiable optimization to find optimal HVAC control variables.
 - **`SIMULATION`**: Runs a forward simulation only with the initial control variables (The results of RBC baseline can be obtained from this, see [src/setting_exporter.py](src/setting_exporter.py)).
-
-### Per-Case Settings (`setting_exporter.py`)
-
-All case-specific parameters - such as room size, geometry, occupants configuration, hyper parameters, and loss function - are defined in [src/setting_exporter.py](src/setting_exporter.py) and exported to `.yaml` / `.pt` files. 
 
 
 ### Proposed Method
@@ -122,7 +120,7 @@ python -m src.MPC_run
 # RL baseline
 python -m src.RL_run
 
-# D-PDE baseline
+# RBC, D-PDE baseline
 python -m src.main
 ```
 For D-PDE baseline, you must modify the `mode` into `D-PDE_OPT` or `D-PDE_SIM` in [src/config.py](src/config.py) .
