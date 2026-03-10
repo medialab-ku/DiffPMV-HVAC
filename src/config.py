@@ -13,7 +13,7 @@ class MODE(str, Enum):
 ## MODIFY HERE ##
 
 setting_fileName =  "Case1"
-mode = "SIMULATION"
+mode = "OPTIMIZATION"
 
 ###########################################
 
