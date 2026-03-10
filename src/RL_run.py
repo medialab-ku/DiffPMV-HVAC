@@ -20,7 +20,7 @@ def make_env(params):
 
 def train():
     params = {
-        "init_action": np.array([0.6, 20.0, np.deg2rad(30.0)], dtype=np.float32),
+        "init_action": np.array([0.6, 20.0, np.deg2rad(135.0)] + ([0.0] if cfg.control_vars.shape[1] == 4 else []), dtype=np.float32),
         "warm_start": 0
     }
 
@@ -48,7 +48,6 @@ def train():
         save_freq = 1800,
         save_path = str(Path(result_folder) / "RL"),
         name_prefix = "ppo_pmv",
-        # save_replay_buffer = True,
     )
 
     new_logger = configure("./ppo_tensorboard/", ["stdout", "csv", "tensorboard"])
@@ -66,7 +65,7 @@ def evaluate():
     print("Evaluation Start:")
 
     params = {
-        "init_action": np.array([0.6, 20.0, np.deg2rad(30.0)], dtype=np.float32),
+        "init_action": np.array([0.6, 20.0, np.deg2rad(135.0)] + ([0.0] if cfg.control_vars.shape[1] == 4 else []), dtype=np.float32),
         "warm_start": 0
     }
 
@@ -93,58 +92,8 @@ def evaluate():
     env.close()
 
 
-def modelSave():
-    """
-    Load the latest checkpoint (ppo_pmv_40000_steps.zip) and save it as ppo_pmv_final
-    """
-    print("Loading checkpoint: ppo_pmv_40000_steps.zip")
-    checkpoint_path = str(Path(result_folder) / "RL" / "ppo_pmv_40000_steps.zip")
-    final_path = str(Path(result_folder) / "RL" / "ppo_pmv_final")
-
-    model = PPO.load(checkpoint_path)
-    print(f"Saving model to: {final_path}")
-    model.save(final_path)
-    print("Successfully saved ppo_pmv_final!")
-
-
-def printActions():
-    Actions = np.load(str(Path(result_folder) / "RL" / "ppo_room_actions.npy"))
-
-    with np.printoptions(threshold=np.inf, linewidth=200, suppress=True):
-        if isinstance(Actions, np.lib.npyio.NpzFile):
-            for k in Actions.files:
-                arr = Actions[k]
-                print(f"\n=== '{k}' ===")
-                print(arr)
-                if hasattr(arr, "shape"):
-                    print(f"shape={arr.shape}, dtype={arr.dtype}")
-        else:
-            print(Actions)
-            if hasattr(Actions, "shape"):
-                print(f"\nshape={Actions.shape}, dtype={Actions.dtype}")
-
-
-def npy2txt():
-    """
-    Convert ppo_room_actions.npy to txt file in Results/RL folder
-    """
-    npy_path = Path(result_folder) / "RL" / "ppo_room_actions.npy"
-    txt_path = Path(result_folder) / "RL" / "ppo_room_actions.txt"
-
-    # Load npy file
-    actions = np.load(str(npy_path))
-
-    # Save as txt with same format as best_vars.txt
-    np.savetxt(str(txt_path), actions, fmt='%.3f')
-
-    print(f"Converted {npy_path} to {txt_path}")
-    print(f"Shape: {actions.shape}, dtype: {actions.dtype}")
-
-
 
 
 if __name__ == "__main__":
     train()
-    # evaluate()
-    # printActions()
-    # npy2txt()
+    evaluate()

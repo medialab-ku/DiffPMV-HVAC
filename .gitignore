@@ -20,6 +20,9 @@ ENV/
 *.swo
 *~
 
+# RL
+ppo_tensorboard/
+
 # OS
 .DS_Store
 Thumbs.db

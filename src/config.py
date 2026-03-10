@@ -6,14 +6,14 @@ class MODE(str, Enum):
     OPTIMIZE = "OPTIMIZATION"            # do optimization
     SIMULATE = "SIMULATION"               # just simulation, no backward
     
-    DPDE_OPTIMIZE = "D-PDE_OPT"
-    DPDE_SIMULATE = "D-PDE_SIM"
+    DPDE_OPTIMIZE = "DPDE_OPT"
+    DPDE_SIMULATE = "DPDE_SIM"
 
 ###########################################
 ## MODIFY HERE ##
 
 setting_fileName =  "Case1"
-mode = "OPTIMIZATION"
+mode = "DPDE_OPT"
 
 ###########################################
 
@@ -28,7 +28,6 @@ class Config:
     scenario: str = f"{Scene_folder}/{setting_fileName}.yaml"  # scenario file name
     run_mode: MODE = mode                                           # ruinning mode
     control_vars: torch.tensor = torch.load(f"{Scene_folder}/{setting_fileName}.pt")
-    # control_vars: torch.tensor = torch.from_numpy(np.loadtxt(str(Path(result_folder) / "bests" / "S2_best2.txt")))
     current_time: str = time.strftime("%y%m%d_%H%M", time.localtime())
 
 

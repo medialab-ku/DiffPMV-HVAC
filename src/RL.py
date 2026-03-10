@@ -25,17 +25,33 @@ class RLEnv(gym.Env):
   def __init__(self, params=None):
     super().__init__()
 
-    self.action_low = np.array([0.0, 14.0, np.deg2rad(0.0)])
-    self.action_high = np.array([2.5, 26.0, np.deg2rad(90.0)])
-    self.action_space = spaces.Box(low=self.action_low, high=self.action_high, shape=(3,), dtype=np.float32)
+    n_ctrl = int(cfg.control_vars.shape[1])
+    self.n_ctrl = n_ctrl
 
-    # observation: (weighted average of |PMV|, mean temperature, v_out, t_out, phi_out, t/Nt, prev_pmv_diff)
-    self.observation_low_raw = np.array([0.0, 14.0, 0.0, 14.0, np.deg2rad(0.0), 0.0, -3.0])
-    self.observation_high_raw = np.array([4.0, 30.0, 3.0, 26.0, np.deg2rad(90.0), 1.0, 3.0])
+    _act_low  = [0.0, 14.0, np.deg2rad(90.0)]
+    _act_high = [2.5, 26.0, np.deg2rad(180.0)]
+    if n_ctrl == 4:
+        _act_low.append(np.deg2rad(-90.0))
+        _act_high.append(np.deg2rad(90.0))
+    self.action_low  = np.array(_act_low,  dtype=np.float32)
+    self.action_high = np.array(_act_high, dtype=np.float32)
+    self.action_space = spaces.Box(low=self.action_low, high=self.action_high, shape=(n_ctrl,), dtype=np.float32)
 
-    self.observation_low = np.zeros(7, dtype=np.float32)
-    self.observation_high = np.ones(7, dtype=np.float32)
-    self.observation_space = spaces.Box(low=self.observation_low, high=self.observation_high, shape=(7,), dtype=np.float32) 
+    # observation: (pmv_avg, T_roi, v_out, t_out, phi_out, [theta_out,] t/Nt, prev_pmv_diff)
+    _obs_low_raw  = [0.0, 14.0, 0.0, 14.0, np.deg2rad(90.0)]
+    _obs_high_raw = [4.0, 30.0, 3.0, 26.0, np.deg2rad(180.0)]
+    if n_ctrl == 4:
+        _obs_low_raw.append(np.deg2rad(-90.0))
+        _obs_high_raw.append(np.deg2rad(90.0))
+    _obs_low_raw  += [0.0, -3.0]
+    _obs_high_raw += [1.0,  3.0]
+    self.observation_low_raw  = np.array(_obs_low_raw)
+    self.observation_high_raw = np.array(_obs_high_raw)
+
+    n_obs = n_ctrl + 4  # 3→7, 4→8
+    self.observation_low  = np.zeros(n_obs, dtype=np.float32)
+    self.observation_high = np.ones(n_obs, dtype=np.float32)
+    self.observation_space = spaces.Box(low=self.observation_low, high=self.observation_high, shape=(n_obs,), dtype=np.float32)
 
     env = Env.from_yaml(Path(cfg.scenario), control_vars=cfg.control_vars)
     self.forward = Forward(env)
@@ -160,15 +176,11 @@ class RLEnv(gym.Env):
     phase = self._to_float(self.t / self.Nt)
     pmv_diff = float(pmv_avg - self.prev_pmv)
 
-    observation_raw = np.array([
-        pmv_avg,
-        T_roi_mean,
-        v_out,
-        t_out,
-        phi_out,
-        phase,
-        pmv_diff
-    ], dtype=np.float32)
+    _obs = [pmv_avg, T_roi_mean, v_out, t_out, phi_out]
+    if self.n_ctrl == 4:
+        _obs.append(self._to_float(a[3]))
+    _obs += [phase, pmv_diff]
+    observation_raw = np.array(_obs, dtype=np.float32)
 
     observation_raw = np.clip(observation_raw, self.observation_low_raw, self.observation_high_raw)
     observation = self._normalize_observation(observation_raw)
@@ -212,9 +224,10 @@ class RLEnv(gym.Env):
     if self.user_init_action is not None:
         init_action = self.user_init_action.copy()
     else:
-        init_action = np.array([0.6, 20.0, np.deg2rad(30.0)], dtype=np.float32)
+        _default = [0.6, 20.0, np.deg2rad(135.0)] + ([0.0] if self.n_ctrl == 4 else [])
+        init_action = np.array(_default, dtype=np.float32)
 
-    init_action = init_action + np.random.uniform(-0.05, 0.05, size=3).astype(np.float32)
+    init_action = init_action + np.random.uniform(-0.05, 0.05, size=self.n_ctrl).astype(np.float32)
     init_action = np.clip(init_action, self.action_low, self.action_high)
 
     self.prev_action = init_action.copy()
@@ -238,15 +251,11 @@ class RLEnv(gym.Env):
         self.prev_pmv = pmv_acc / max(total_w, 1e-8)
         T_roi_mean = T_roi_acc / max(total_w, 1e-8)
 
-    observation_raw = np.array([
-        self.prev_pmv, 
-        T_roi_mean, 
-        float(init_action[0]), 
-        float(init_action[1]), 
-        float(init_action[2]), 
-        0.0, 
-        0.0
-    ], dtype=np.float32)
+    _obs_init = [self.prev_pmv, T_roi_mean, float(init_action[0]), float(init_action[1]), float(init_action[2])]
+    if self.n_ctrl == 4:
+        _obs_init.append(float(init_action[3]))
+    _obs_init += [0.0, 0.0]
+    observation_raw = np.array(_obs_init, dtype=np.float32)
 
     observation_raw = np.clip(observation_raw, self.observation_low_raw, self.observation_high_raw)
     observation = self._normalize_observation(observation_raw)

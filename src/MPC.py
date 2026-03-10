@@ -111,8 +111,8 @@ class Bounds:
     T_max: float = 30.0
 
     # diffuser angle (what Forward.step() expects as phi)
-    phi_min: float = 0.0
-    phi_max: float = _py_math.pi / 2.0   # up to 90 deg tilt
+    phi_min: float = _py_math.pi / 2.0
+    phi_max: float = _py_math.pi 
 
 
 @dataclass
@@ -172,7 +172,7 @@ class MPCConfig:
                                            # True: hard constraint (may cause infeasibility)
 
     # Diffuser control (non-convex if decision variable)
-    phi_nominal: float = 0.0               # fixed angle [rad] (0 = horizontal)
+    phi_nominal: float = _py_math.pi / 2.0 # fixed angle [rad] (π/2 = pointing down)
                                            # Future work: adaptive φ via MINLP
 
     # QP solver selection

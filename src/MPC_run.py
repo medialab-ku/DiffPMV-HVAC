@@ -78,7 +78,7 @@ cfg_mpc = MPCConfig(
     pmv_linearize_v0=0.15,                  # Initial linearization velocity [m/s]
     update_linearization=True,              # Recompute PMV coefficients each step
     use_pmv_band_constraint=False,          # False = soft penalty, True = hard constraint
-    phi_nominal=0.0,                        # Fixed diffuser angle [rad] (0 = horizontal)
+    phi_nominal= math.pi / 2,                        # Fixed diffuser angle [rad] (0 = horizontal)
     cvxpy_solver="OSQP",                    # QP solver (OSQP, ECOS, GUROBI)
 )
 

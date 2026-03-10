@@ -347,5 +347,5 @@ if __name__ == "__main__":
     env = Env.from_yaml(Path(cfg.scenario), control_vars=cfg.control_vars)
     if   cfg.run_mode == "OPTIMIZATION":    run_optimization(env)
     elif cfg.run_mode == "SIMULATION":      run_simulation(env)
-    elif cfg.run_mode == "D-PDE_OPT":        run_DPDE_opt(env)
-    elif cfg.run_mode == "D-PDE_SIM":        run_DPDE_sim(env)
+    elif cfg.run_mode == "DPDE_OPT":        run_DPDE_opt(env)
+    elif cfg.run_mode == "DPDE_SIM":        run_DPDE_sim(env)
