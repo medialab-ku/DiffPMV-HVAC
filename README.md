@@ -72,17 +72,15 @@ PMV_DP/
 
 Three cases from the paper are provided under `src/Cases/`.
 
-To regenerate case files:
+All case-specific parameters - such as room size, geometry, occupants configuration, hyper parameters, and loss function - are defined in [src/setting_exporter.py](src/setting_exporter.py) and exported to `.yaml` / `.pt` files. 
+
+To regenerate case files, run:
 
 ```bash
 python -m src.setting_exporter Case1
 python -m src.setting_exporter Case2
 python -m src.setting_exporter Case3
 ```
-
-or you can generate new case file by adding new function at `setting_exporter.py`.
-
-All case-specific parameters - such as room size, geometry, occupants configuration, hyper parameters, and loss function - are defined in [src/setting_exporter.py](src/setting_exporter.py) and exported to `.yaml` / `.pt` files. 
 
 ---
 
