@@ -26,7 +26,7 @@ Clone the repository and create the conda environment from the provided `environ
 
 ```bash
 git clone https://github.com/medialab-ku/DiffPMV-HVAC
-cd PMV_DP
+cd DiffPMV-HVAC
 conda env create -f environment.yml
 conda activate DiffPMV
 ```
