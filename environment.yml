@@ -1,0 +1,22 @@
+name: DiffPMV
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu128
+      - torch==2.7.1+cu128
+      - torchvision==0.22.1+cu128
+      - torchaudio==2.7.1+cu128
+      - phiflow==2.5.3
+      - phiml==1.2.1
+      - numpy==1.26.3
+      - tqdm
+      - pyyaml
+      - cvxpy
+      - gymnasium
+      - stable-baselines3
+      - seaborn
+      - tensorboard
+      - pandas

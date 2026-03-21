@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# RL
+ppo_tensorboard/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Results (generated outputs): keep folder, ignore contents
+src/Results/**
+!src/Results/.gitkeep
+
+# Jupyter
+.ipynb_checkpoints/
+
+# TensorBoard
+runs/
+logs/
+
+
+# Misc
+*.log
